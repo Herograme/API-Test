@@ -4,7 +4,7 @@ import br.com.herograme.requests.User
 import java.sql.DriverManager
 import java.sql.SQLException
 
-val database =
+var database =
     DriverManager.getConnection("jdbc:sqlite:database.db") ?: throw SQLException("Não foi possivel criar")
 
 fun createDatabase(){
@@ -21,22 +21,31 @@ fun createDatabase(){
     }
 }
 
-fun insertUser(user: User):Boolean{
+fun insertUsers(users:List<User>) {
     //println(user.Nome)
-    val query = database.prepareStatement("INSERT INTO 'users'(name,email) VALUES (?,?)")
-    query.setString(1,user.Nome)
-    query.setString(2,user.Email)
-    query.executeUpdate()
-    return true
+    database.use { connection ->
+            connection.autoCommit = false
+            val sql = "INSERT INTO users (name,email) VALUES(?,?)"
+            connection.prepareStatement(sql).use {statement ->
+                for (user in users) {
+                    statement.setString(1,user.Nome)
+                    statement.setString(2,user.Email)
+                    statement.addBatch()
+                }
+                statement.executeBatch()
+            }
+            connection.commit()
+            true
+        }
 }
 
-fun getAllUsers():List<User>{
+fun getAllUsers():List<User> {
     val users = mutableListOf<User>()
     try {
         val result = database.createStatement().executeQuery("SELECT * FROM 'users'")
 
-        while (result.next()){
-            val user = User (
+        while (result.next()) {
+            val user = User(
                 Id = result.getInt("id"),
                 Nome = result.getString("name"),
                 Email = result.getString("email")
@@ -45,10 +54,27 @@ fun getAllUsers():List<User>{
         }
         println("teste${users.size}")
         return users
-    }catch (e: SQLException){
-        println("erro:$e")
+    } catch (e: SQLException) {
+        if (e.errorCode == 0) {
+            database =
+                DriverManager.getConnection("jdbc:sqlite:database.db") ?: throw SQLException("Não foi possivel criar")
+
+
+            val result = database.createStatement().executeQuery("SELECT * FROM 'users'")
+
+            while (result.next()) {
+                val user = User(
+                    Id = result.getInt("id"),
+                    Nome = result.getString("name"),
+                    Email = result.getString("email")
+                )
+                users.add(user)
+
+            }
+
+        }
+        return users
     }
-    return users
 }
 
 fun ResetTable(){
