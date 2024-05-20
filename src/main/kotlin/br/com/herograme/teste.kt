@@ -21,22 +21,34 @@ fun createDatabase(){
     }
 }
 
-fun insertUsers(users:List<User>) {
-    //println(user.Nome)
+fun insert(users:List<User>){
     database.use { connection ->
-            connection.autoCommit = false
-            val sql = "INSERT INTO users (name,email) VALUES(?,?)"
-            connection.prepareStatement(sql).use {statement ->
-                for (user in users) {
-                    statement.setString(1,user.Nome)
-                    statement.setString(2,user.Email)
-                    statement.addBatch()
-                }
-                statement.executeBatch()
+        connection.autoCommit = false
+        val sql = "INSERT INTO users (name,email) VALUES(?,?)"
+        connection.prepareStatement(sql).use {statement ->
+            for (user in users) {
+                statement.setString(1,user.Nome)
+                statement.setString(2,user.Email)
+                statement.addBatch()
             }
-            connection.commit()
-            true
+            statement.executeBatch()
         }
+        connection.commit()
+        true
+    }
+}
+
+fun insertUsers(users:List<User>) {
+    try {
+        insert(users)
+    } catch (e:SQLException){
+        if (e.errorCode == 0){
+            database =
+                DriverManager.getConnection("jdbc:sqlite:database.db") ?: throw SQLException("Não foi possivel criar")
+            insert(users)
+        }
+    }
+
 }
 
 fun getAllUsers():List<User> {
