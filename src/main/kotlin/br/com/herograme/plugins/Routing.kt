@@ -4,6 +4,7 @@ import br.com.herograme.ResetTable
 import br.com.herograme.getAllUsers
 import br.com.herograme.insertUsers
 import br.com.herograme.requests.User
+import br.com.herograme.requests.response
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
@@ -25,7 +26,7 @@ fun Application.configureRouting() {
             println("get")
             val users = getAllUsers()
 
-            call.respond(HttpStatusCode.OK,"Users Read ${users.size}")
+            call.respond(HttpStatusCode.OK,response(users.size))
         }
         delete(""){
             ResetTable()

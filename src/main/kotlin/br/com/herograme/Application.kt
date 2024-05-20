@@ -1,6 +1,7 @@
 package br.com.herograme
 
-import br.com.herograme.plugins.*
+import br.com.herograme.plugins.configureRouting
+import br.com.herograme.plugins.configureSerialization
 import io.ktor.server.application.*
 
 fun main(args: Array<String>) {
@@ -8,7 +9,7 @@ fun main(args: Array<String>) {
 }
 
 fun Application.module() {
-    //configureSerialization()
+    configureSerialization()
     configureRouting()
 
     createDatabase()

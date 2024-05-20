@@ -9,3 +9,7 @@ data class User(
     val Nome:String,
     val Email:String
 )
+@Serializable
+data class response (
+    val count:Int
+)
